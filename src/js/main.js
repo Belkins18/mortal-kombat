@@ -1,41 +1,87 @@
 // src
-const assets = 'http://reactmarathon-api.herokuapp.com/assets/'
-const imgList = {
-    scorpion: `${assets}/scorpion.gif`,
-    kitana: `${assets}/kitana.gif`,
-    liukang: `${assets}/liukang.gif`,
-    sonya: `${assets}/sonya.gif`,
-    subzero: `${assets}/subzero.gif`,
+const assets = 'http://reactmarathon-api.herokuapp.com/assets/';
+interface Hero {
+    name: string;
+    img: string;
+    weapon: [];
+    hp: number;
+    playerNumber?: number;
+}
+const heroes: Object<Hero> = {
+    scorpion: {
+        name: 'SCORPION',
+        img: `${assets}/scorpion.gif`,
+        weapon: [],
+        hp: 100
+    },
+    kitana: {
+        name: 'KITANA',
+        img: `${assets}/kitana.gif`,
+        weapon: [],
+        hp: 100
+    },
+    liukang: {
+        name: 'LIU-KANG',
+        img: `${assets}/liukang.gif`,
+        weapon: [],
+        hp: 100
+    },
+    sonya: {
+        name: 'SONYA',
+        img: `${assets}/sonya.gif`,
+        weapon: [],
+        hp: 100
+    },
+    subzero: {
+        name: 'SUB-ZERO',
+        img: `${assets}/subzero.gif`,
+        weapon: [],
+        hp: 100
+    }
 }
 // Dom
-const $arena = document.querySelector('.arenas');
+const $arena: HTMLDivElement = document.querySelector('.arenas');
+const $randomBtn: HTMLButtonElement = document.querySelector('.button');
+const $switchMode: HTMLInputElement = document.getElementById('checkbox');
+
+// Global State
+let players: [] = [];
+let playersDOM: [] = [];
+
+const createEl = (tag: string, className: string | null = null) => {
+    if (!className) return document.createElement(tag);
+    const $element = document.createElement(tag)
+    $element.classList.add(className);
+    return $element;
+}
 
 // Class
 class CreatePlayer {
-    constructor(name: string, hp: number, img: string, weapon: [string]) {
+    constructor(name: string, hp: number, img: string, weapon: [string], number: number) {
         this.name = name;
         this.hp = hp;
         this.img = img;
-        this.weapon = weapon
+        // this.weapon = weapon
+        this.playerNumber = `player${number}`
     }
 
-    attack() {
-        console.log(`${this.name} Fight...`)
+    // attack() {
+    //     console.log(`${this.name} Fight...`)
+    // }
+    changeHP() {
+        const $playerLife = document.querySelector(`.${this.playerNumber} .life`)
+        this.hp -= 20;
+        $playerLife.style.width = `${this.hp}%`;
     }
 }
 
-const createPlayer = (playerNumber: string, player: {
-    name: string, hp: number, img: string, weapon: [string]
+const createPlayer = (player: {
+    name: string,
+    hp: number,
+    img: string,
+    weapon: [string]
 }) => {
-    const createEl = (tag: string, className: string | null = null) => {
-        if (!className) return document.createElement(tag);
-        const $element = document.createElement(tag)
-        $element.classList.add(className);
-        return $element;
-    }
-
-    const {name, hp, img, weapon} = player
-    console.log(player.img)
+    const {name, hp, img, playerNumber} = player
     const $root = createEl('div', playerNumber);
     const $progressbar = createEl('div', 'progressbar');
     const $life = createEl('div', 'life');
@@ -54,13 +100,81 @@ const createPlayer = (playerNumber: string, player: {
     $root.appendChild($progressbar);
     $root.appendChild($character);
     return $root;
+};
+
+if (localStorage.getItem('gameMod')) {
+    $switchMode.checked = JSON.parse(localStorage.getItem('gameMod'))
 }
 
-const scorpion = new CreatePlayer('SCORPION', 50, imgList.scorpion, []);
-const subzero = new CreatePlayer('SUB-ZERO', 80, imgList.subzero, []);
+const getRandomPlayer = (list) => {
+    return list[Math.floor(Math.random() * list.length)]
+}
+const generatePlayers = (hardMode: boolean = false, _heroes = heroes): void => {
+    Array(2).fill(0).forEach((item, index) => {
+        const key= getRandomPlayer(Object.keys(_heroes))
+        const hero = heroes[key];
+        const randomHP = Math.ceil(Math.random() * 100);
 
-const player1 = createPlayer('player1', scorpion);
-const player2 = createPlayer('player2', subzero);
+        players.push(new CreatePlayer(
+            hero.name,
+            hardMode ? randomHP : hero.hp,
+            hero.img,
+            hero.weapon,
+            index + 1
+        ));
+    });
+}
+const refreshRender = () => {
+    playersDOM.forEach(item => {
+        $arena.removeChild(item);
+    })
 
-$arena.appendChild(player1);
-$arena.appendChild(player2);
+    players = [];
+    playersDOM = [];
+
+    generatePlayers(JSON.parse(localStorage.getItem('gameMod')));
+    renderPlayers();
+}
+const renderPlayers = () => {
+    if (players.length !== 2) return;
+
+    players.forEach((item, index) => {
+        playersDOM.push(createPlayer(item));
+        $arena.appendChild(playersDOM[index]);
+    })
+}
+
+function playerLose(name) {
+    const $loseTitle = createEl('div','loseTitle');
+    $loseTitle.innerText = name + ' lose!'
+
+    return $loseTitle;
+}
+
+// ----------------------------
+document.addEventListener('DOMContentLoaded', function() {
+    generatePlayers(JSON.parse(localStorage.getItem('gameMod')));
+    renderPlayers();
+
+
+// listeners
+    $randomBtn.addEventListener('click', () => {
+        players.forEach(player => {
+            player.changeHP();
+
+            if (player.hp < 0) {
+                $arena.appendChild(playerLose(player.name));
+            }
+        });
+    })
+
+    $switchMode.addEventListener("change", function() {
+        if (localStorage.getItem('gameMod')) {
+            localStorage.removeItem("gameMod");
+        }
+
+        localStorage.setItem("gameMod", this.checked);
+        refreshRender();
+    })
+});
+

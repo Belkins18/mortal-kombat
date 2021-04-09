@@ -11,8 +11,8 @@ const imgList = {
 const $arena = document.querySelector('.arenas');
 
 // Class
-class CreatePlayer{
-    constructor(name, hp, img, weapon) {
+class CreatePlayer {
+    constructor(name: string, hp: number, img: string, weapon: [string]) {
         this.name = name;
         this.hp = hp;
         this.img = img;
@@ -24,8 +24,10 @@ class CreatePlayer{
     }
 }
 
-const createPlayer = (playerNumber, player) => {
-    const createEl = (tag, className= null) => {
+const createPlayer = (playerNumber: string, player: {
+    name: string, hp: number, img: string, weapon: [string]
+}) => {
+    const createEl = (tag: string, className: string | null = null) => {
         if (!className) return document.createElement(tag);
         const $element = document.createElement(tag)
         $element.classList.add(className);
@@ -33,7 +35,7 @@ const createPlayer = (playerNumber, player) => {
     }
 
     const {name, hp, img, weapon} = player
-
+    console.log(player.img)
     const $root = createEl('div', playerNumber);
     const $progressbar = createEl('div', 'progressbar');
     const $life = createEl('div', 'life');
@@ -57,7 +59,7 @@ const createPlayer = (playerNumber, player) => {
 const scorpion = new CreatePlayer('SCORPION', 50, imgList.scorpion, []);
 const subzero = new CreatePlayer('SUB-ZERO', 80, imgList.subzero, []);
 
-const player1 = createPlayer('player1' , scorpion);
+const player1 = createPlayer('player1', scorpion);
 const player2 = createPlayer('player2', subzero);
 
 $arena.appendChild(player1);

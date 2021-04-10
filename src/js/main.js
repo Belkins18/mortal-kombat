@@ -70,8 +70,14 @@ class CreatePlayer {
     // }
     changeHP() {
         const $playerLife = document.querySelector(`.${this.playerNumber} .life`)
-        this.hp -= 20;
-        $playerLife.style.width = `${this.hp}%`;
+        this.hp -= Math.floor(Math.random() * 21);
+
+        if (this.hp <=0 ) {
+            $playerLife.style.width = `0%`;
+        } else {
+            $playerLife.style.width = `${this.hp}%`;
+        }
+
     }
 }
 
@@ -128,12 +134,17 @@ const refreshRender = () => {
     playersDOM.forEach(item => {
         $arena.removeChild(item);
     })
-
     players = [];
     playersDOM = [];
 
     generatePlayers(JSON.parse(localStorage.getItem('gameMod')));
     renderPlayers();
+    $randomBtn.disabled = false;
+    if ($arena.querySelector(".winTitle")) {
+        const $winTitle = $arena.querySelector(".winTitle")
+        $arena.removeChild($winTitle);
+    }
+
 }
 const renderPlayers = () => {
     if (players.length !== 2) return;
@@ -144,11 +155,11 @@ const renderPlayers = () => {
     })
 }
 
-function playerLose(name) {
-    const $loseTitle = createEl('div','loseTitle');
-    $loseTitle.innerText = name + ' lose!'
+function playerWin(name) {
+    const $winTitle = createEl('div','winTitle');
+    $winTitle.innerText = name + ' win!'
 
-    return $loseTitle;
+    return $winTitle;
 }
 
 // ----------------------------
@@ -159,13 +170,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // listeners
     $randomBtn.addEventListener('click', () => {
-        players.forEach(player => {
-            player.changeHP();
+        const whoseMove = Math.floor(Math.random() * 2);
+        Number(whoseMove) === 0 ? players[0].changeHP() : players[1].changeHP();
 
-            if (player.hp < 0) {
-                $arena.appendChild(playerLose(player.name));
+        players.forEach((player, index) => {
+            if (player.hp <= 0) {
+                $randomBtn.disabled = true;
+                const winPlayer = players.filter(item => item.playerNumber !== player.playerNumber)[0].name;
+                $arena.appendChild(playerWin(winPlayer));
             }
-        });
+        })
     })
 
     $switchMode.addEventListener("change", function() {

@@ -261,7 +261,15 @@ body {
   top: 1px;
 }
 
-.loseTitle {
+.button[disabled]{
+  cursor: initial;
+  background: #6D6633;
+  &::after {
+    display: none;
+  }
+}
+
+.loseTitle, .winTitle {
   position: absolute;
   top: 25%;
   left: 50%;

@@ -69,15 +69,19 @@ class CreatePlayer {
     //     console.log(`${this.name} Fight...`)
     // }
     changeHP() {
-        const $playerLife = document.querySelector(`.${this.playerNumber} .life`)
         this.hp -= Math.floor(Math.random() * 21);
-
-        if (this.hp <=0 ) {
+    }
+    renderHP() {
+        const $playerLife = this.elHP();
+    
+        if (this.hp <= 0 ) {
             $playerLife.style.width = `0%`;
         } else {
             $playerLife.style.width = `${this.hp}%`;
         }
-
+    }
+    elHP() {
+        return document.querySelector(`.${this.playerNumber} .life`)
     }
 }
 
@@ -171,9 +175,13 @@ document.addEventListener('DOMContentLoaded', function() {
 // listeners
     $randomBtn.addEventListener('click', () => {
         const whoseMove = Math.floor(Math.random() * 2);
-        Number(whoseMove) === 0 ? players[0].changeHP() : players[1].changeHP();
-
+       
         players.forEach((player, index) => {
+            if (Number(whoseMove) === index) {
+                players[index].changeHP(),
+                players[index].renderHP()
+            }
+
             if (player.hp <= 0) {
                 $randomBtn.disabled = true;
                 const winPlayer = players.filter(item => item.playerNumber !== player.playerNumber)[0].name;

@@ -62,6 +62,10 @@ module.exports = {
                     to: path.resolve(__dirname, 'dist', 'assets', 'fonts'),
                 },
                 {
+                    from: path.resolve(__dirname, 'src', 'assets', 'audio'),
+                    to: path.resolve(__dirname, 'dist', 'assets', 'audio'),
+                },
+                {
                     from:  path.resolve(__dirname, 'src', 'assets', 'images', 'favicon'),
                     to: path.resolve(__dirname, 'dist', 'favicon'),
                 },

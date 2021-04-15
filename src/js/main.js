@@ -39,11 +39,20 @@ const heroes: Object<Hero> = {
         hp: 100
     }
 }
+const HIT = {
+    head: 30,
+    body: 25,
+    foot: 20,
+}
+const ATTACK = ['head', 'body', 'foot'];
+
+
 // Dom
 const $root: HTMLDivElement = document.querySelector('.root');
 const $arena: HTMLDivElement = document.querySelector('.arenas');
 const $randomBtn: HTMLButtonElement = document.querySelector('.button');
 const $switchMode: HTMLInputElement = document.getElementById('checkbox');
+const $formFight: HTMLFontElement = document.querySelector('.control');
 
 // Global State
 let players: [] = [];
@@ -99,6 +108,17 @@ class CreatePlayer {
     }
     elHP() {
         return document.querySelector(`.${this.playerNumber} .life`)
+    }
+
+    enemyAttack() {
+        const hit = ATTACK[randomInteger(0, 2)];
+        const defence = ATTACK[randomInteger(0, 2)];
+        
+        return {
+            value: randomInteger(0, HIT[hit]),
+            hit,
+            defence
+        }
     }
 }
 
@@ -217,11 +237,10 @@ function changeAudio(...attr) {
     createAudio(...attr)
 }
 
-
 // ----------------------------
 document.addEventListener('DOMContentLoaded', function () {
     setTimeout(() => {
-        createAudio({ src: randomInteger(1, 3), allow: "autoplay 'src'" });
+        // createAudio({ src: randomInteger(1, 3), allow: "autoplay 'src'" });
     });
     generatePlayers(JSON.parse(localStorage.getItem('gameMod')));
     renderPlayers();
@@ -261,5 +280,12 @@ document.addEventListener('DOMContentLoaded', function () {
         refreshRender();
         changeAudio({ src: randomInteger(1, 3) });
     });
+
+    $formFight.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        // const enemy = enemyAttack();
+        // console.log( enemy )
+    })
 });
 

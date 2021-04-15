@@ -56,10 +56,21 @@ const createEl = (tag: string, className: string | null = null) => {
     return $element;
 }
 
+const createReloadButton = () => {
+    const $wrap = createEl('div', 'reloadWrap');
+    const $button = createEl('button', 'button');
+
+    $button.innerText = 'Restart';
+    $wrap.appendChild($button);
+    $arena.appendChild($wrap);
+
+    $wrap.addEventListener('click', () => window.location.reload());
+}
+
 const randomInteger = (min, max) => {
     let rand = min - 0.5 + Math.random() * (max - min + 1);
     return Math.round(rand);
-  }
+}
 
 // Class
 class CreatePlayer {
@@ -79,8 +90,8 @@ class CreatePlayer {
     }
     renderHP() {
         const $playerLife = this.elHP();
-    
-        if (this.hp <= 0 ) {
+
+        if (this.hp <= 0) {
             $playerLife.style.width = `0%`;
         } else {
             $playerLife.style.width = `${this.hp}%`;
@@ -97,7 +108,7 @@ const createPlayer = (player: {
     img: string,
     weapon: [string]
 }) => {
-    const {name, hp, img, playerNumber} = player
+    const { name, hp, img, playerNumber } = player
     const $root = createEl('div', playerNumber);
     const $progressbar = createEl('div', 'progressbar');
     const $life = createEl('div', 'life');
@@ -127,7 +138,7 @@ const getRandomPlayer = (list) => {
 }
 const generatePlayers = (hardMode: boolean = false, _heroes = heroes): void => {
     Array(2).fill(0).forEach((item, index) => {
-        const key= getRandomPlayer(Object.keys(_heroes))
+        const key = getRandomPlayer(Object.keys(_heroes))
         const hero = heroes[key];
         const randomHP = randomInteger(1, 100);
 
@@ -150,7 +161,7 @@ const refreshRender = () => {
     generatePlayers(JSON.parse(localStorage.getItem('gameMod')));
     renderPlayers();
     $randomBtn.disabled = false;
-    
+
     if ($arena.querySelector(".winTitle")) {
         const $winTitle = $arena.querySelector(".winTitle")
         $arena.removeChild($winTitle);
@@ -167,71 +178,66 @@ const renderPlayers = () => {
 }
 
 function playerWin(name) {
-    const $winTitle = createEl('div','winTitle');
+    const $winTitle = createEl('div', 'winTitle');
     $winTitle.innerText = name + ' win!';
 
-    changeAudioEmbed(19, {loop: "false"});
-    
+    changeAudio({ src: '19' });
+
     return $winTitle;
 }
 
-const createReloadButton = () => {
-    const $wrap = createEl('div', 'reloadWrap');
-    const $button = createEl('button', 'button');
 
-    $button.innerText = 'Restart';
-    $wrap.appendChild($button);
-    $arena.appendChild($wrap);
 
-    $wrap.addEventListener('click', () => window.location.reload());
-}
+function createAudio(...attr) {
+    window.$audio = createEl('audio');
 
-function createAudioEmbed(audioNumber, ...attr) {
-    window.$embed = createEl('embed');
     const attributes = {
-        width: 180,
-        height: 90,
-        hidden: true,
-    }
-    Object.assign(attributes, ...attr)
-
-    for(var key in attributes) {
-        $embed.setAttribute(`${key}`, `${attributes[key]}`)
-    }
-    if (audioNumber) {
-        $embed.setAttribute( 'src', `./assets/audio/${ audioNumber }.mp3`);
-    } else {
-        $embed.setAttribute( 'src', `./assets/audio/${ randomInteger(1, 3) }.mp3`);
+        autoplay: "autoplay",
+        loop: "loop",
+        preload: 'auto'
     }
 
-    $root.appendChild($embed);
+    Object.assign(attributes, ...attr);
+
+    for (var key in attributes) {
+        $audio.setAttribute(`${key}`, `${attributes[key]}`)
+        if (key === 'src') {
+            $audio.setAttribute('src', `./assets/audio/${attributes[key]}.mp3`);
+
+        }
+    }
+
+    $audio.play();
+    $root.appendChild($audio);
 }
 
-function changeAudioEmbed(audioNumber, ...attr) {
-    window.$embed.remove();
-    createAudioEmbed(audioNumber, ...attr)
+function changeAudio(...attr) {
+    window.$audio.remove();
+
+    createAudio(...attr)
 }
 
 
 // ----------------------------
-document.addEventListener('DOMContentLoaded', function() {
-    createAudioEmbed(null, {autostart: false, loop: false});
+document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(() => {
+        createAudio({ src: randomInteger(1, 3), allow: "autoplay 'src'" });
+    });
     generatePlayers(JSON.parse(localStorage.getItem('gameMod')));
     renderPlayers();
-    createReloadButton();
 
 
-// listeners
+    // listeners
     $randomBtn.addEventListener('click', () => {
         const whoseMove = Math.floor(Math.random() * 2);
         Number(whoseMove) === 0 ? (
             players[0].changeHP(),
             players[0].renderHP()
-        ) 
-        : (
-            players[1].changeHP(),
-            players[1].renderHP()
         )
+            : (
+                players[1].changeHP(),
+                players[1].renderHP()
+            )
 
 
         players.forEach((player, index) => {
@@ -239,18 +245,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 $randomBtn.disabled = true;
                 const winPlayer = players.filter(item => item.playerNumber !== player.playerNumber)[0].name;
                 $arena.appendChild(playerWin(winPlayer));
+
+                createReloadButton();
+
             }
         })
     })
 
-    $switchMode.addEventListener("change", function() {
+    $switchMode.addEventListener("change", function () {
         if (localStorage.getItem('gameMod')) {
             localStorage.removeItem("gameMod");
         }
 
         localStorage.setItem("gameMod", this.checked);
         refreshRender();
-        changeAudioEmbed(randomInteger(1, 3), {loop: "true"});
-    });    
+        changeAudio({ src: randomInteger(1, 3) });
+    });
 });
 

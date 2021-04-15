@@ -329,3 +329,14 @@ body {
   }
 }
 
+
+.reloadWrap {
+  position: absolute;
+  top: 10%;
+  z-index: 1000;
+  left: 50%;
+  transform: translate(-50%, 0%);
+  .button {
+    margin-top: 0;
+  }
+}

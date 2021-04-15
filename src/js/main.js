@@ -40,6 +40,7 @@ const heroes: Object<Hero> = {
     }
 }
 // Dom
+const $root: HTMLDivElement = document.querySelector('.root');
 const $arena: HTMLDivElement = document.querySelector('.arenas');
 const $randomBtn: HTMLButtonElement = document.querySelector('.button');
 const $switchMode: HTMLInputElement = document.getElementById('checkbox');
@@ -55,6 +56,11 @@ const createEl = (tag: string, className: string | null = null) => {
     return $element;
 }
 
+const randomInteger = (min, max) => {
+    let rand = min - 0.5 + Math.random() * (max - min + 1);
+    return Math.round(rand);
+  }
+
 // Class
 class CreatePlayer {
     constructor(name: string, hp: number, img: string, weapon: [string], number: number) {
@@ -69,15 +75,19 @@ class CreatePlayer {
     //     console.log(`${this.name} Fight...`)
     // }
     changeHP() {
-        const $playerLife = document.querySelector(`.${this.playerNumber} .life`)
-        this.hp -= Math.floor(Math.random() * 21);
-
-        if (this.hp <=0 ) {
+        this.hp -= randomInteger(1, 20);
+    }
+    renderHP() {
+        const $playerLife = this.elHP();
+    
+        if (this.hp <= 0 ) {
             $playerLife.style.width = `0%`;
         } else {
             $playerLife.style.width = `${this.hp}%`;
         }
-
+    }
+    elHP() {
+        return document.querySelector(`.${this.playerNumber} .life`)
     }
 }
 
@@ -119,7 +129,7 @@ const generatePlayers = (hardMode: boolean = false, _heroes = heroes): void => {
     Array(2).fill(0).forEach((item, index) => {
         const key= getRandomPlayer(Object.keys(_heroes))
         const hero = heroes[key];
-        const randomHP = Math.ceil(Math.random() * 100);
+        const randomHP = randomInteger(1, 100);
 
         players.push(new CreatePlayer(
             hero.name,
@@ -140,6 +150,7 @@ const refreshRender = () => {
     generatePlayers(JSON.parse(localStorage.getItem('gameMod')));
     renderPlayers();
     $randomBtn.disabled = false;
+    
     if ($arena.querySelector(".winTitle")) {
         const $winTitle = $arena.querySelector(".winTitle")
         $arena.removeChild($winTitle);
@@ -157,21 +168,71 @@ const renderPlayers = () => {
 
 function playerWin(name) {
     const $winTitle = createEl('div','winTitle');
-    $winTitle.innerText = name + ' win!'
+    $winTitle.innerText = name + ' win!';
 
+    changeAudioEmbed(19, {loop: "false"});
+    
     return $winTitle;
 }
 
+const createReloadButton = () => {
+    const $wrap = createEl('div', 'reloadWrap');
+    const $button = createEl('button', 'button');
+
+    $button.innerText = 'Restart';
+    $wrap.appendChild($button);
+    $arena.appendChild($wrap);
+
+    $wrap.addEventListener('click', () => window.location.reload());
+}
+
+function createAudioEmbed(audioNumber, ...attr) {
+    window.$embed = createEl('embed');
+    const attributes = {
+        width: 180,
+        height: 90,
+        hidden: true,
+    }
+    Object.assign(attributes, ...attr)
+
+    for(var key in attributes) {
+        $embed.setAttribute(`${key}`, `${attributes[key]}`)
+    }
+    if (audioNumber) {
+        $embed.setAttribute( 'src', `./assets/audio/${ audioNumber }.mp3`);
+    } else {
+        $embed.setAttribute( 'src', `./assets/audio/${ randomInteger(1, 3) }.mp3`);
+    }
+
+    $root.appendChild($embed);
+}
+
+function changeAudioEmbed(audioNumber, ...attr) {
+    window.$embed.remove();
+    createAudioEmbed(audioNumber, ...attr)
+}
+
+
 // ----------------------------
 document.addEventListener('DOMContentLoaded', function() {
+    createAudioEmbed(null, {autostart: false, loop: false});
     generatePlayers(JSON.parse(localStorage.getItem('gameMod')));
     renderPlayers();
+    createReloadButton();
 
 
 // listeners
     $randomBtn.addEventListener('click', () => {
         const whoseMove = Math.floor(Math.random() * 2);
-        Number(whoseMove) === 0 ? players[0].changeHP() : players[1].changeHP();
+        Number(whoseMove) === 0 ? (
+            players[0].changeHP(),
+            players[0].renderHP()
+        ) 
+        : (
+            players[1].changeHP(),
+            players[1].renderHP()
+        )
+
 
         players.forEach((player, index) => {
             if (player.hp <= 0) {
@@ -189,6 +250,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         localStorage.setItem("gameMod", this.checked);
         refreshRender();
-    })
+        changeAudioEmbed(randomInteger(1, 3), {loop: "true"});
+    });    
 });
 

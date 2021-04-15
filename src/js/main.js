@@ -230,8 +230,6 @@ function createAudio(...attr) {
 
     const attributes = {
         autoplay: "autoplay",
-        // loop: "loop",
-        // preload: 'auto'
     }
 
     Object.assign(attributes, ...attr);

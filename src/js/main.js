@@ -1,13 +1,6 @@
 // src
 const assets = 'http://reactmarathon-api.herokuapp.com/assets/';
-interface Hero {
-    name: string;
-    img: string;
-    weapon: [];
-    hp: number;
-    playerNumber?: number;
-}
-const heroes: Object<Hero> = {
+const heroes = {
     scorpion: {
         name: 'SCORPION',
         img: `${assets}/scorpion.gif`,
@@ -48,18 +41,18 @@ const ATTACK = ['head', 'body', 'foot'];
 
 
 // Dom
-const $root: HTMLDivElement = document.querySelector('.root');
-const $arena: HTMLDivElement = document.querySelector('.arenas');
-const $switchMode: HTMLInputElement = document.getElementById('checkbox');
-const $formFight: HTMLFontElement = document.querySelector('.control');
+const $root = document.querySelector('.root');
+const $arena = document.querySelector('.arenas');
+const $switchMode = document.getElementById('checkbox');
+const $formFight = document.querySelector('.control');
 
 // Global State
-let players: [] = [];
-let playersDOM: [] = [];
+let players = [];
+let playersDOM = [];
 let myPlayer;
 let enemyPlayer;
 
-const createEl = (tag: string, className: string | null = null) => {
+const createEl = (tag, className = null) => {
     if (!className) return document.createElement(tag);
     const $element = document.createElement(tag)
     $element.classList.add(className);
@@ -84,7 +77,13 @@ const randomInteger = (min, max) => {
 
 // Class
 class CreatePlayer {
-    constructor(name: string, hp: number, img: string, weapon: [string], number: number, isEnemy: Boolean) {
+    constructor(
+        name, 
+        hp, 
+        img, 
+        weapon, 
+        number, 
+        isEnemy) {
         this.name = name;
         this.hp = hp;
         this.img = img;
@@ -123,13 +122,7 @@ class CreatePlayer {
     }
 }
 
-const createPlayer = (player: {
-    name: string,
-    hp: number,
-    img: string,
-    weapon: [string],
-    isEnemy: Boolean
-}) => {
+const createPlayer = (player) => {
     const { name, hp, img, playerNumber, isEnemy } = player
     const $root = createEl('div', playerNumber);
     const $progressbar = createEl('div', 'progressbar');
@@ -164,7 +157,11 @@ const getRandomPlayer = (list) => {
     return list[Math.floor(Math.random() * list.length)]
 }
 
-const generatePlayers = (hardMode: boolean = false, myPlayer: number = 0, _heroes = heroes): void => {
+const generatePlayers = (
+    hardMode = false, 
+    myPlayer = 0, 
+    _heroes = heroes
+) => {
     Array(2).fill(0).forEach((item, index) => {
         const key = getRandomPlayer(Object.keys(_heroes))
         const hero = heroes[key];
@@ -229,6 +226,7 @@ function createAudio(...attr) {
     window.$audio = createEl('audio');
 
     const attributes = {
+        preload: "auto",
         autoplay: "autoplay",
     }
 
@@ -241,7 +239,6 @@ function createAudio(...attr) {
         }
     }
 
-    $audio.play();
     $root.appendChild($audio);
 }
 
@@ -252,10 +249,9 @@ function changeAudio(...attr) {
 }
 
 // ----------------------------
+
 document.addEventListener('DOMContentLoaded', function () {
-    setTimeout(() => {
-        createAudio({ src: randomInteger(1, 3), allow: "autoplay 'src'", loop: "loop" });
-    });
+    createAudio({ src: randomInteger(1, 3), allow: "autoplay 'src'", loop: "loop" });
     generatePlayers(JSON.parse(localStorage.getItem('gameMod')), randomInteger(0, 1));
     renderPlayers();
     
@@ -331,24 +327,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
             }
         })
-        //     const enemyPlayerAttackStats = player.enemyAttack();
-    
-        //     if (player.isEnemy()) {
-        //         players[0].changeHP(enemyPlayerAttackStats.value);
-        //     }
-        //     console.log(myPlayerAttackStats, 'myPlayerAttackStats');
-        //     console.log(enemyPlayerAttackStats, 'enemyPlayerAttackStats');
-        //     player.renderHP();
-    
-            // if (player.hp <= 0) {
-            //     $fightBtn.disabled = true;
-            //     const winPlayer = players.filter(item => item.playerNumber !== player.playerNumber)[0].name;
-            //     $arena.appendChild(playerWin(winPlayer));
-
-            //     createReloadButton();
-
-            // }
-        // })
     })
+
+    const playPromise = $audio.play();
+    
+    if (playPromise !== undefined) {
+        playPromise.then(function() {
+            console.log('Automatic playback started!');
+        }).catch(function(error) {
+            console.error('Zar! How i can resolse this problem?');
+        });
+    };
+
 });
 

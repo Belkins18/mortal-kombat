@@ -1,13 +1,6 @@
 // src
 const assets = 'http://reactmarathon-api.herokuapp.com/assets/';
-interface Hero {
-    name: string;
-    img: string;
-    weapon: [];
-    hp: number;
-    playerNumber?: number;
-}
-const heroes: Object<Hero> = {
+const heroes = {
     scorpion: {
         name: 'SCORPION',
         img: `${assets}/scorpion.gif`,
@@ -39,69 +32,103 @@ const heroes: Object<Hero> = {
         hp: 100
     }
 }
+const HIT = {
+    head: 30,
+    body: 25,
+    foot: 20,
+}
+const ATTACK = ['head', 'body', 'foot'];
+
+
 // Dom
-const $root: HTMLDivElement = document.querySelector('.root');
-const $arena: HTMLDivElement = document.querySelector('.arenas');
-const $randomBtn: HTMLButtonElement = document.querySelector('.button');
-const $switchMode: HTMLInputElement = document.getElementById('checkbox');
+const $root = document.querySelector('.root');
+const $arena = document.querySelector('.arenas');
+const $switchMode = document.getElementById('checkbox');
+const $formFight = document.querySelector('.control');
 
 // Global State
-let players: [] = [];
-let playersDOM: [] = [];
+let players = [];
+let playersDOM = [];
+let myPlayer;
+let enemyPlayer;
 
-const createEl = (tag: string, className: string | null = null) => {
+const createEl = (tag, className = null) => {
     if (!className) return document.createElement(tag);
     const $element = document.createElement(tag)
     $element.classList.add(className);
     return $element;
 }
 
+const createReloadButton = () => {
+    const $wrap = createEl('div', 'reloadWrap');
+    const $button = createEl('button', 'button');
+
+    $button.innerText = 'Restart';
+    $wrap.appendChild($button);
+    $arena.appendChild($wrap);
+
+    $wrap.addEventListener('click', () => window.location.reload());
+}
+
 const randomInteger = (min, max) => {
     let rand = min - 0.5 + Math.random() * (max - min + 1);
     return Math.round(rand);
-  }
+}
 
 // Class
 class CreatePlayer {
-    constructor(name: string, hp: number, img: string, weapon: [string], number: number) {
+    constructor(
+        name, 
+        hp, 
+        img, 
+        weapon, 
+        number, 
+        isEnemy) {
         this.name = name;
         this.hp = hp;
         this.img = img;
         // this.weapon = weapon
         this.playerNumber = `player${number}`
+        this.isEnemy = isEnemy;
     }
 
-    // attack() {
-    //     console.log(`${this.name} Fight...`)
-    // }
-    changeHP() {
-        this.hp -= randomInteger(1, 20);
+    changeHP(value) {
+        this.hp -= value;
     }
+
     renderHP() {
         const $playerLife = this.elHP();
-    
-        if (this.hp <= 0 ) {
+
+        if (this.hp <= 0) {
             $playerLife.style.width = `0%`;
         } else {
             $playerLife.style.width = `${this.hp}%`;
         }
     }
+
     elHP() {
         return document.querySelector(`.${this.playerNumber} .life`)
     }
+
+    enemyAttack() {
+        const hit = ATTACK[randomInteger(0, 2)];
+        const defence = ATTACK[randomInteger(0, 2)];
+        
+        return {
+            value: randomInteger(0, HIT[hit]),
+            hit,
+            defence
+        }
+    }
 }
 
-const createPlayer = (player: {
-    name: string,
-    hp: number,
-    img: string,
-    weapon: [string]
-}) => {
-    const {name, hp, img, playerNumber} = player
+const createPlayer = (player) => {
+    const { name, hp, img, playerNumber, isEnemy } = player
     const $root = createEl('div', playerNumber);
     const $progressbar = createEl('div', 'progressbar');
     const $life = createEl('div', 'life');
     const $name = createEl('div', 'name');
+    const $isPlayer = createEl('div', 'isPlayer');
     const $character = createEl('div', 'character');
     const $img = createEl('img');
 
@@ -111,6 +138,10 @@ const createPlayer = (player: {
 
     $progressbar.appendChild($life);
     $progressbar.appendChild($name);
+    if (!isEnemy) {
+        $progressbar.appendChild($isPlayer);
+    }
+    
     $character.appendChild($img);
 
     $root.appendChild($progressbar);
@@ -125,9 +156,14 @@ if (localStorage.getItem('gameMod')) {
 const getRandomPlayer = (list) => {
     return list[Math.floor(Math.random() * list.length)]
 }
-const generatePlayers = (hardMode: boolean = false, _heroes = heroes): void => {
+
+const generatePlayers = (
+    hardMode = false, 
+    myPlayer = 0, 
+    _heroes = heroes
+) => {
     Array(2).fill(0).forEach((item, index) => {
-        const key= getRandomPlayer(Object.keys(_heroes))
+        const key = getRandomPlayer(Object.keys(_heroes))
         const hero = heroes[key];
         const randomHP = randomInteger(1, 100);
 
@@ -136,10 +172,12 @@ const generatePlayers = (hardMode: boolean = false, _heroes = heroes): void => {
             hardMode ? randomHP : hero.hp,
             hero.img,
             hero.weapon,
-            index + 1
+            index + 1,
+            myPlayer === index ? false : true
         ));
     });
 }
+
 const refreshRender = () => {
     playersDOM.forEach(item => {
         $arena.removeChild(item);
@@ -147,110 +185,159 @@ const refreshRender = () => {
     players = [];
     playersDOM = [];
 
-    generatePlayers(JSON.parse(localStorage.getItem('gameMod')));
+    generatePlayers(JSON.parse(localStorage.getItem('gameMod')), 1);
     renderPlayers();
-    $randomBtn.disabled = false;
-    
+    $fightBtn.disabled = false;
+
     if ($arena.querySelector(".winTitle")) {
         const $winTitle = $arena.querySelector(".winTitle")
         $arena.removeChild($winTitle);
     }
 
 }
+
 const renderPlayers = () => {
     if (players.length !== 2) return;
 
-    players.forEach((item, index) => {
-        playersDOM.push(createPlayer(item));
+    players.forEach((player, index) => {
+        console.log(player)
+        playersDOM.push(createPlayer(player));
+        
+        if (player.isEnemy) {
+            enemyPlayer = player;
+        } else {
+            myPlayer = player;
+        }
+        
         $arena.appendChild(playersDOM[index]);
     })
 }
 
 function playerWin(name) {
-    const $winTitle = createEl('div','winTitle');
+    const $winTitle = createEl('div', 'winTitle');
     $winTitle.innerText = name + ' win!';
 
-    changeAudioEmbed(19, {loop: "false"});
-    
+    changeAudio({ src: '19'});
+
     return $winTitle;
 }
 
-const createReloadButton = () => {
-    const $wrap = createEl('div', 'reloadWrap');
-    const $button = createEl('button', 'button');
+function createAudio(...attr) {
+    window.$audio = createEl('audio');
 
-    $button.innerText = 'Restart';
-    $wrap.appendChild($button);
-    $arena.appendChild($wrap);
-
-    $wrap.addEventListener('click', () => window.location.reload());
-}
-
-function createAudioEmbed(audioNumber, ...attr) {
-    window.$embed = createEl('embed');
     const attributes = {
-        width: 180,
-        height: 90,
-        hidden: true,
-    }
-    Object.assign(attributes, ...attr)
-
-    for(var key in attributes) {
-        $embed.setAttribute(`${key}`, `${attributes[key]}`)
-    }
-    if (audioNumber) {
-        $embed.setAttribute( 'src', `./assets/audio/${ audioNumber }.mp3`);
-    } else {
-        $embed.setAttribute( 'src', `./assets/audio/${ randomInteger(1, 3) }.mp3`);
+        preload: "auto",
+        autoplay: "autoplay",
     }
 
-    $root.appendChild($embed);
+    Object.assign(attributes, ...attr);
+
+    for (var key in attributes) {
+        $audio.setAttribute(`${key}`, `${attributes[key]}`)
+        if (key === 'src') {
+            $audio.setAttribute('src', `./assets/audio/${attributes[key]}.mp3`);
+        }
+    }
+
+    $root.appendChild($audio);
 }
 
-function changeAudioEmbed(audioNumber, ...attr) {
-    window.$embed.remove();
-    createAudioEmbed(audioNumber, ...attr)
-}
+function changeAudio(...attr) {
+    window.$audio.remove();
 
+    createAudio(...attr)
+}
 
 // ----------------------------
-document.addEventListener('DOMContentLoaded', function() {
-    createAudioEmbed(null, {autostart: false, loop: false});
-    generatePlayers(JSON.parse(localStorage.getItem('gameMod')));
+
+document.addEventListener('DOMContentLoaded', function () {
+    createAudio({ src: randomInteger(1, 3), allow: "autoplay 'src'", loop: "loop" });
+    generatePlayers(JSON.parse(localStorage.getItem('gameMod')), randomInteger(0, 1));
     renderPlayers();
-    createReloadButton();
-
-
-// listeners
-    $randomBtn.addEventListener('click', () => {
-        const whoseMove = Math.floor(Math.random() * 2);
-        Number(whoseMove) === 0 ? (
-            players[0].changeHP(),
-            players[0].renderHP()
-        ) 
-        : (
-            players[1].changeHP(),
-            players[1].renderHP()
-        )
-
-
-        players.forEach((player, index) => {
-            if (player.hp <= 0) {
-                $randomBtn.disabled = true;
-                const winPlayer = players.filter(item => item.playerNumber !== player.playerNumber)[0].name;
-                $arena.appendChild(playerWin(winPlayer));
-            }
-        })
+    
+    console.log('myPlayer', {
+        ...myPlayer
+    })
+    console.log('enemyPlayer', {
+        ...enemyPlayer
     })
 
-    $switchMode.addEventListener("change", function() {
+    // listeners
+    $switchMode.addEventListener("change", function () {
         if (localStorage.getItem('gameMod')) {
             localStorage.removeItem("gameMod");
         }
 
         localStorage.setItem("gameMod", this.checked);
         refreshRender();
-        changeAudioEmbed(randomInteger(1, 3), {loop: "true"});
-    });    
+        changeAudio({ src: randomInteger(1, 3), loop: "loop" });
+    });
+
+    $formFight.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const $btnSubmit = $formFight.querySelector("button[type='submit']")
+
+        const myPlayerRaundStep = {};
+
+        for (const item of $formFight) {
+
+            if (item.checked && item.name === 'hit') {
+                myPlayerRaundStep.value = randomInteger(0, HIT[item.value]);
+                myPlayerRaundStep.hit = item.value;
+            }
+
+            if (item.checked && item.name === 'defence') {
+                myPlayerRaundStep.defence = item.value
+            }
+
+            item.checked = false;
+        }
+
+
+        const enemyPlayerRaundStep = enemyPlayer.enemyAttack();
+
+  
+        console.log('myPlayer', {
+            ...myPlayerRaundStep
+        })
+        console.log('enemyPlayer', {
+            ...enemyPlayerRaundStep
+        })
+
+        console.log($btnSubmit);
+        
+        if (myPlayerRaundStep.hit !== enemyPlayerRaundStep.defence) {
+            enemyPlayer.changeHP(myPlayerRaundStep.value);
+        } 
+        if (enemyPlayerRaundStep.hit !== myPlayerRaundStep.defence) {
+            myPlayer.changeHP(enemyPlayerRaundStep.value);
+        }
+
+
+        players.forEach((player, index) => {
+            player.renderHP();
+            if (player.hp <= 0) {
+                $btnSubmit.disabled = true;
+                
+                const winPlayer = players.filter(item => item.playerNumber !== player.playerNumber)[0].name;
+                
+                $arena.appendChild(playerWin(winPlayer));
+                $arena.removeChild($formFight);
+                createReloadButton();
+
+            }
+        })
+    })
+
+    const playPromise = $audio.play();
+    
+    if (playPromise !== undefined) {
+        playPromise.then(function() {
+            console.log('Automatic playback started!');
+        }).catch(function(error) {
+            console.error('Zar! How i can resolse this problem?');
+        });
+    };
+
 });
 

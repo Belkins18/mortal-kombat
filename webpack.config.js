@@ -29,7 +29,7 @@ console.log({
     to: path.resolve(__dirname, 'dist', 'fonts'),
 })
 const {jsEntry, styleEntry} = paths;
-
+console.log(addresses()[0])
 module.exports = {
     entry: {
         app: [jsEntry, styleEntry],
@@ -41,7 +41,8 @@ module.exports = {
     devtool: 'inline-source-map',
     devServer: {
         contentBase: path.resolve(__dirname, 'dist'),
-        host: addresses()[0], //your ip address
+        // host: addresses()[0], //your ip address
+        host: 'localhost', //your ip address
         port: 9000,
         compress: true,
         open: true,

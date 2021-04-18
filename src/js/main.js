@@ -1,3 +1,4 @@
+import {logs} from './logs';
 // src
 const assets = 'http://reactmarathon-api.herokuapp.com/assets/';
 const heroes = {
@@ -5,31 +6,31 @@ const heroes = {
         name: 'SCORPION',
         img: `${assets}/scorpion.gif`,
         weapon: [],
-        hp: 100
+        hp: 10
     },
     kitana: {
         name: 'KITANA',
         img: `${assets}/kitana.gif`,
         weapon: [],
-        hp: 100
+        hp: 10
     },
     liukang: {
         name: 'LIU-KANG',
         img: `${assets}/liukang.gif`,
         weapon: [],
-        hp: 100
+        hp: 10
     },
     sonya: {
         name: 'SONYA',
         img: `${assets}/sonya.gif`,
         weapon: [],
-        hp: 100
+        hp: 10
     },
     subzero: {
         name: 'SUB-ZERO',
         img: `${assets}/subzero.gif`,
         weapon: [],
-        hp: 100
+        hp: 10
     }
 }
 const HIT = {
@@ -39,12 +40,12 @@ const HIT = {
 }
 const ATTACK = ['head', 'body', 'foot'];
 
-
 // Dom
 const $root = document.querySelector('.root');
 const $arena = document.querySelector('.arenas');
 const $switchMode = document.getElementById('checkbox');
 const $formFight = document.querySelector('.control');
+const $chat = document.querySelector('.chat');
 
 // Global State
 let players = [];
@@ -110,35 +111,43 @@ class CreatePlayer {
         return document.querySelector(`.${this.playerNumber} .life`)
     }
 
-    enemyAttack() {
-        const hit = ATTACK[randomInteger(0, 2)];
-        const defence = ATTACK[randomInteger(0, 2)];
+    attack(player) {
+        this.hitValue = 0;
+
+        switch (player) {
+            case 'enemy':
+                const hit = ATTACK[randomInteger(0, 2)];
+                const defence = ATTACK[randomInteger(0, 2)];
+                
+                this.hitValue = randomInteger(0, HIT[hit])
+
+                return {
+                    value: this.hitValue,
+                    hit,
+                    defence
+                }
+            case 'player':
+                const myPlayer = {};
+
+                for (const item of $formFight) {
         
-        return {
-            value: randomInteger(0, HIT[hit]),
-            hit,
-            defence
+                    if (item.checked && item.name === 'hit') {
+                        myPlayer.value = randomInteger(0, HIT[item.value]);
+                        myPlayer.hit = item.value;
+                    }
+        
+                    if (item.checked && item.name === 'defence') {
+                        myPlayer.defence = item.value
+                    }
+        
+                    item.checked = false;
+                }
+
+                this.hitValue = myPlayer.value;
+                
+                return myPlayer;
         }
-    }
-
-    playerAttack () {
-        const myPlayerRaundStep = {};
-
-        for (const item of $formFight) {
-
-            if (item.checked && item.name === 'hit') {
-                myPlayerRaundStep.value = randomInteger(0, HIT[item.value]);
-                myPlayerRaundStep.hit = item.value;
-            }
-
-            if (item.checked && item.name === 'defence') {
-                myPlayerRaundStep.defence = item.value
-            }
-
-            item.checked = false;
-        }
-        return myPlayerRaundStep;
-    }
+    } 
 }
 
 const createPlayer = (player) => {
@@ -204,7 +213,7 @@ const refreshRender = () => {
     players = [];
     playersDOM = [];
 
-    generatePlayers(JSON.parse(localStorage.getItem('gameMod')), 1);
+    generatePlayers(JSON.parse(localStorage.getItem('gameMod')));
     renderPlayers();
     $fightBtn.disabled = false;
 
@@ -219,7 +228,7 @@ const renderPlayers = () => {
     if (players.length !== 2) return;
 
     players.forEach((player, index) => {
-        console.log(player)
+        // console.log(player)
         playersDOM.push(createPlayer(player));
         
         if (player.isEnemy) {
@@ -267,24 +276,98 @@ function changeAudio(...attr) {
     createAudio(...attr)
 }
 
+function showResults($btnSubmit) {
+    players.forEach((player) => {
+        player.renderHP();
+
+        if (player.hp <= 0) {
+            $btnSubmit.disabled = true;
+            
+            const playersStatus = {};
+            
+            players
+                .filter(item => {
+                    if (item.playerNumber !== player.playerNumber) {
+                        playersStatus.win = item
+                        return item
+                    } else playersStatus.lose = item
+                })
+            console.log(playersStatus);
+            
+            generateLogs('end', playersStatus.win, playersStatus.lose);
+
+            $arena.appendChild(playerWin(playersStatus.win.name));
+            $arena.removeChild($formFight);
+
+            createReloadButton();
+        }
+    })
+}
+
+
+function generateLogs(type, player1, player2) {
+    const date = new Date();
+    const time = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+    let text;
+    switch (type) {
+        case 'start':
+            text = logs.start
+                .replace('[time]', time)
+                .replace('[player1]', player1.name)
+                .replace('[player2]', player2.name)
+            break;
+        case 'end':
+            text = logs.end[randomInteger(0, logs.end.length - 1)]
+                .replace('[playerWins]', player1.name)
+                .replace('[playerLose]', player2.name)
+            break;
+        case 'hit':
+            console.log('player1', player1.hitValue);
+
+
+            text = `${logs.hit[randomInteger(0, logs.hit.length - 1)]
+                .replace('[playerKick]', player1.name)
+                .replace('[playerDefence]', player2.name)} | Dmg: ${player1.hitValue} | HP(${player2.name}): ${player2.hp <= 0 ? 0 : player2.hp}/100`;
+            break;
+        case 'defence':
+            text = `${logs.defence[randomInteger(0, logs.defence.length - 1)]
+                .replace('[playerKick]', player1.name)
+                .replace('[playerDefence]', player2.name)} | HP(${player2.name}): ${player2.hp <= 0 ? 0 : player2.hp}/100`
+            break;
+        default:
+            break;
+    }
+    console.log(text);
+    const chatEl = `<p>${time}: ${text}</p>`;
+    $chat.insertAdjacentHTML('afterbegin', chatEl);
+}
+
 // ----------------------------
-function playerStep(hit, defence, value, playerInstance) {
-    if (hit !== defence) {
-        playerInstance.changeHP(value);
-    } 
+function playerStep(hit, defence, value, players) {
+    const hitPlayer = players.hit;
+    const defPlayer = players.defence;
+
+    // console.log('hitPlayer', hitPlayer);
+    // console.log('defPlayer', defPlayer.name);
+
+    if(hitPlayer.hp > 0 && defPlayer.hp > 0) {
+        if (hit !== defence) {
+            defPlayer.changeHP(value);
+            generateLogs('hit', hitPlayer, defPlayer);
+        } else {
+            generateLogs('defence', hitPlayer, defPlayer);
+        }    
+    } else {
+        console.error('HP < 0')
+    }    
 }
 
 document.addEventListener('DOMContentLoaded', function () {
     createAudio({ src: randomInteger(1, 3), allow: "autoplay 'src'", loop: "loop" });
-    generatePlayers(JSON.parse(localStorage.getItem('gameMod')), randomInteger(0, 1));
+    generatePlayers(JSON.parse(localStorage.getItem('gameMod')));
     renderPlayers();
-    
-    console.log('myPlayer', {
-        ...myPlayer
-    })
-    console.log('enemyPlayer', {
-        ...enemyPlayer
-    })
+
+    generateLogs('start', myPlayer, enemyPlayer);
 
     // listeners
     $switchMode.addEventListener("change", function () {
@@ -300,20 +383,26 @@ document.addEventListener('DOMContentLoaded', function () {
     $formFight.addEventListener('submit', (event) => {
         event.preventDefault();
         const $btnSubmit = $formFight.querySelector("button[type='submit']")
-        const myPlayerRaundStep = myPlayer.playerAttack();
-        const enemyPlayerRaundStep = enemyPlayer.enemyAttack();
+        const myPlayerRaundStep = myPlayer.attack('player');
+        const enemyPlayerRaundStep = enemyPlayer.attack('enemy');
         const actors  = [
             {
                 hit: myPlayerRaundStep.hit,
                 defence: enemyPlayerRaundStep.defence,
                 value: myPlayerRaundStep.value,
-                player: enemyPlayer
+                players: {
+                    hit: myPlayer,
+                    defence: enemyPlayer 
+                }
             },
             {
                 hit: enemyPlayerRaundStep.hit,
                 defence: myPlayerRaundStep.defence,
                 value: enemyPlayerRaundStep.value,
-                player: myPlayer
+                players: {
+                    hit: enemyPlayer,
+                    defence: myPlayer 
+                }
             }, 
             
         ];
@@ -324,21 +413,11 @@ document.addEventListener('DOMContentLoaded', function () {
             ...enemyPlayerRaundStep
         })
 
-        actors.forEach(item => playerStep(item.hit, item.defence, item.value, item.player));
-    
-        players.forEach((player, index) => {
-            player.renderHP();
-
-            if (player.hp <= 0) {
-                $btnSubmit.disabled = true;
-                
-                const winPlayer = players.filter(item => item.playerNumber !== player.playerNumber)[0].name;
-                
-                $arena.appendChild(playerWin(winPlayer));
-                $arena.removeChild($formFight);
-                createReloadButton();
-            }
-        })
+        actors.forEach(item => 
+            playerStep(item.hit, item.defence, item.value, item.players));
+        
+        showResults($btnSubmit);
+        
     })
 
     const playPromise = $audio.play();
@@ -350,6 +429,5 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Zar! How i can resolse this problem?');
         });
     };
-
 });
 

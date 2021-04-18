@@ -120,6 +120,25 @@ class CreatePlayer {
             defence
         }
     }
+
+    playerAttack () {
+        const myPlayerRaundStep = {};
+
+        for (const item of $formFight) {
+
+            if (item.checked && item.name === 'hit') {
+                myPlayerRaundStep.value = randomInteger(0, HIT[item.value]);
+                myPlayerRaundStep.hit = item.value;
+            }
+
+            if (item.checked && item.name === 'defence') {
+                myPlayerRaundStep.defence = item.value
+            }
+
+            item.checked = false;
+        }
+        return myPlayerRaundStep;
+    }
 }
 
 const createPlayer = (player) => {
@@ -249,6 +268,11 @@ function changeAudio(...attr) {
 }
 
 // ----------------------------
+function playerStep(hit, defence, value, playerInstance) {
+    if (hit !== defence) {
+        playerInstance.changeHP(value);
+    } 
+}
 
 document.addEventListener('DOMContentLoaded', function () {
     createAudio({ src: randomInteger(1, 3), allow: "autoplay 'src'", loop: "loop" });
@@ -276,27 +300,23 @@ document.addEventListener('DOMContentLoaded', function () {
     $formFight.addEventListener('submit', (event) => {
         event.preventDefault();
         const $btnSubmit = $formFight.querySelector("button[type='submit']")
-
-        const myPlayerRaundStep = {};
-
-        for (const item of $formFight) {
-
-            if (item.checked && item.name === 'hit') {
-                myPlayerRaundStep.value = randomInteger(0, HIT[item.value]);
-                myPlayerRaundStep.hit = item.value;
-            }
-
-            if (item.checked && item.name === 'defence') {
-                myPlayerRaundStep.defence = item.value
-            }
-
-            item.checked = false;
-        }
-
-
+        const myPlayerRaundStep = myPlayer.playerAttack();
         const enemyPlayerRaundStep = enemyPlayer.enemyAttack();
-
-  
+        const actors  = [
+            {
+                hit: myPlayerRaundStep.hit,
+                defence: enemyPlayerRaundStep.defence,
+                value: myPlayerRaundStep.value,
+                player: enemyPlayer
+            },
+            {
+                hit: enemyPlayerRaundStep.hit,
+                defence: myPlayerRaundStep.defence,
+                value: enemyPlayerRaundStep.value,
+                player: myPlayer
+            }, 
+            
+        ];
         console.log('myPlayer', {
             ...myPlayerRaundStep
         })
@@ -304,18 +324,11 @@ document.addEventListener('DOMContentLoaded', function () {
             ...enemyPlayerRaundStep
         })
 
-        console.log($btnSubmit);
-        
-        if (myPlayerRaundStep.hit !== enemyPlayerRaundStep.defence) {
-            enemyPlayer.changeHP(myPlayerRaundStep.value);
-        } 
-        if (enemyPlayerRaundStep.hit !== myPlayerRaundStep.defence) {
-            myPlayer.changeHP(enemyPlayerRaundStep.value);
-        }
-
-
+        actors.forEach(item => playerStep(item.hit, item.defence, item.value, item.player));
+    
         players.forEach((player, index) => {
             player.renderHP();
+
             if (player.hp <= 0) {
                 $btnSubmit.disabled = true;
                 
@@ -324,7 +337,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 $arena.appendChild(playerWin(winPlayer));
                 $arena.removeChild($formFight);
                 createReloadButton();
-
             }
         })
     })

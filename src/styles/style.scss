@@ -173,6 +173,7 @@ body {
 }
 
 .chat {
+  position: relative;
   width: 786px;
   height: 30vh;
   background-image: url(../assets/images/content/versus.png);
@@ -180,9 +181,31 @@ body {
   background-position: center;
   border-top: 4px solid #f5d100;
   padding: 6px 40px;
-  overflow: scroll;
+  overflow-y: auto;
   color: white;
-  font-family: Arial;
+  font-family: Mortal Kombat\ 3;
+  &:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    background: rgba(0, 0, 0, 0.84);
+  }
+  
+  > * {
+    position: relative;
+  }
+  .log{
+    font-family: Mortal Kombat\ 3;
+    &__player1 {
+      color: #cd0e03
+    }
+    &__player2 {
+      color: #0431f9
+    }
+  }
 }
 
 
@@ -290,55 +313,6 @@ body {
   color: white;
   font-family: "Mortal Kombat 3";
 }
-
-
-// ----------------
-.switch-mode {
-  width: auto;
-  height: auto;
-  position: absolute;
-  left: 5vw;
-  top: 10px;
-  z-index: 100;
-  display: none;
-  input {
-    display: none;
-  }
-
-  /* toggle */
-  .toggle {
-    /* 	display: block; */
-    position: relative;
-    cursor: pointer;
-  }
-  .toggle:before {
-    content: "";
-    display: block;
-    width: 70px;
-    height: 27px;
-    border-radius: 15px;
-    background-color: lightgray;
-  }
-  .toggle span {
-    position: absolute;
-    top: -4px;
-    left: 0;
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    background-color: lightslategray;
-    transition: all 0.3s ease;
-  }
-
-  #checkbox:checked + .toggle:before {
-    background: lightblue;
-  }
-  #checkbox:checked + .toggle span {
-    transform: translateX(35px);
-    background-color: lightskyblue;
-  }
-}
-
 
 .reloadWrap {
   position: absolute;

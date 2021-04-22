@@ -75,11 +75,7 @@ module.exports = {
                     to: path.resolve(__dirname, 'dist', 'assets', 'images', 'content'),
                 }
             ]
-        }),
-        // new ImageminPlugin({test: /\.(jpe?g|png|gif)$/i}),
-        // new tinyPngWebpackPlugin({
-        //     key: "8N0BYkt1a0vHo31ORta6pkVduJFQiSyK",
-        // }),
+        })
     ],
     module: {
         rules: [

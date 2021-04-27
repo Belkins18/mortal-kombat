@@ -9,13 +9,13 @@ const HIT = {
 const ATTACK = ["head", "body", "foot"];
 
 export default class Player {
-  constructor(name, hp, img, weapon, number, isEnemy) {
-    this.name = name;
-    this.hp = hp;
-    this.img = img;
-    this.weapon = weapon;
-    this.playerNumber = `player${number}`;
-    this.isEnemy = isEnemy;
+  constructor(payload) {
+    this.name = payload.name;
+    this.hp = payload.hp;
+    this.img = payload.img;
+    this.weapon = payload.weapon;
+    this.playerNumber = `player${payload.number}`;
+    this.isEnemy = payload.isEnemy;
   }
 
   changeHP(value) {

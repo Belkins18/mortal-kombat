@@ -41,12 +41,23 @@ const logs = {
   draw: "Ничья - это тоже победа!",
 };
 
-export const generateLogs = (type, player1, player2, chat) => {
+export const generateLogs = (
+  type, 
+  { 
+    name: namePlayer1, 
+    hitValue: hitValuePlayer1
+  }, 
+  {
+    name: namePlayer2,
+    hp: hpPlayer2
+  },
+  chat 
+) => {
   const date = new Date();
   const time = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 
-  const player1Template = `<span class="log log__player1">${player1.name}</span>`;
-  const player2Template = `<span class="log log__player2">${player2.name}</span>`;
+  const player1Template = `<span class="log log__player1">${namePlayer1}</span>`;
+  const player2Template = `<span class="log log__player2">${namePlayer2}</span>`;
   const blockTemplate = `${player2Template} Blocked ${player1Template} HIT`;
   const hitTemplate = `${player1Template} Hit ${player2Template}`;
 
@@ -56,30 +67,30 @@ export const generateLogs = (type, player1, player2, chat) => {
     case "start":
       text = logs.start
         .replace("[time]", time)
-        .replace("[player1]", player1.name)
-        .replace("[player2]", player2.name);
+        .replace("[player1]", namePlayer1)
+        .replace("[player2]", namePlayer2);
       break;
     case "end":
       text = logs.end[randomInteger(0, logs.end.length - 1)]
-        .replace("[playerWins]", player1.name)
-        .replace("[playerLose]", player2.name);
+        .replace("[playerWins]", namePlayer1)
+        .replace("[playerLose]", namePlayer2);
       break;
     case "hit":
-      console.log("player1", player1.hitValue);
+      console.log("player1", hitValuePlayer1);
 
       text = `${logs.hit[randomInteger(0, logs.hit.length - 1)]
-        .replace("[playerKick]", player1.name)
-        .replace("[playerDefence]", player2.name)} 
-        <br/>${hitTemplate} | Dmg: ${player1.hitValue} | HP(${player2.name}): ${
-        player2.hp <= 0 ? 0 : player2.hp
+        .replace("[playerKick]", namePlayer1)
+        .replace("[playerDefence]", namePlayer2)} 
+        <br/>${hitTemplate} | Dmg: ${hitValuePlayer1} | HP(${namePlayer2}): ${
+        hpPlayer2 <= 0 ? 0 : hpPlayer2
       }/100`;
       break;
     case "defence":
       text = `${logs.defence[randomInteger(0, logs.defence.length - 1)]
-        .replace("[playerKick]", player1.name)
-        .replace("[playerDefence]", player2.name)} <br/>${blockTemplate} | HP(${
-        player2.name
-      }): ${player2.hp <= 0 ? 0 : player2.hp}/100`;
+        .replace("[playerKick]", namePlayer1)
+        .replace("[playerDefence]", namePlayer2)} <br/>${blockTemplate} | HP(${
+        namePlayer2
+      }): ${hpPlayer2 <= 0 ? 0 : hpPlayer2}/100`;
       break;
     default:
       break;

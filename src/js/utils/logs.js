@@ -76,8 +76,6 @@ export const generateLogs = (
         .replace("[playerLose]", namePlayer2);
       break;
     case "hit":
-      console.log("player1", hitValuePlayer1);
-
       text = `${logs.hit[randomInteger(0, logs.hit.length - 1)]
         .replace("[playerKick]", namePlayer1)
         .replace("[playerDefence]", namePlayer2)} 
@@ -95,8 +93,7 @@ export const generateLogs = (
     default:
       break;
   }
-  console.log(text);
-
+  
   const chatEl = `<p>${time}: ${text}</p>`;
 
   chat.insertAdjacentHTML("afterbegin", chatEl);

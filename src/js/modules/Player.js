@@ -1,4 +1,7 @@
-import { randomInteger } from "../utils";
+import { 
+  randomInteger,
+  createElement 
+} from "../utils";
 import { $formFight } from "../domEls";
 
 const HIT = {
@@ -72,4 +75,31 @@ export default class Player {
   domHPElement() {
     return document.querySelector(`.${this.playerNumber} .life`);
   }
+
+  createPlayer = () => {
+    const $root = createElement("div", this.playerNumber);
+    const $progressbar = createElement("div", "progressbar");
+    const $life = createElement("div", "life");
+    const $name = createElement("div", "name");
+    const $isPlayer = createElement("div", "isPlayer");
+    const $character = createElement("div", "character");
+    const $img = createElement("img");
+
+    $life.style.width = `${this.hp}%`;
+    $name.innerText = this.name;
+    $img.src = this.img;
+
+    $progressbar.appendChild($life);
+    $progressbar.appendChild($name);
+
+    if (!this.isEnemy) {
+      $progressbar.appendChild($isPlayer);
+    }
+
+    $character.appendChild($img);
+
+    $root.appendChild($progressbar);
+    $root.appendChild($character);
+    return $root;
+  };
 }

@@ -4,39 +4,6 @@ import { createElement, randomInteger, generateLogs } from "../utils";
 import { $root, $arena, $chat, $formFight } from "../domEls";
 
 const _api = new FetchApi();
-const assets = "http://reactmarathon-api.herokuapp.com/assets/";
-const heroes = {
-  scorpion: {
-    name: "SCORPION",
-    img: `${assets}/scorpion.gif`,
-    weapon: [],
-    hp: 100,
-  },
-  kitana: {
-    name: "KITANA",
-    img: `${assets}/kitana.gif`,
-    weapon: [],
-    hp: 100,
-  },
-  liukang: {
-    name: "LIU-KANG",
-    img: `${assets}/liukang.gif`,
-    weapon: [],
-    hp: 100,
-  },
-  sonya: {
-    name: "SONYA",
-    img: `${assets}/sonya.gif`,
-    weapon: [],
-    hp: 100,
-  },
-  subzero: {
-    name: "SUB-ZERO",
-    img: `${assets}/subzero.gif`,
-    weapon: [],
-    hp: 100,
-  },
-};
 
 export default class Game {
   constructor(payload) {
@@ -85,7 +52,7 @@ export default class Game {
     $arena.appendChild(this.myPlayer.createPlayer());
   }
   async renderPlayers() {
-    this.setMyPlayer(heroes.scorpion);
+    this.setMyPlayer(JSON.parse(localStorage.getItem('player1')));
     await this.setEnemyPlayer();
   }
 
@@ -191,7 +158,7 @@ export default class Game {
     $wrap.appendChild($button);
     $arena.appendChild($wrap);
 
-    $wrap.addEventListener("click", () => location.reload());
+    $wrap.addEventListener("click", () => location.pathname = '/');
   }
 
   static createAudio(...attr) {

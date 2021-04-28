@@ -1,3 +1,4 @@
+@import url("./loader.scss");
 @font-face {
   font-family: 'Mortal Kombat 3';
   src: url('../assets/fonts/MortalKombat3-Regular.eot');
@@ -9,6 +10,7 @@
   font-style: normal;
   font-display: swap;
 }
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 *,
 *:before,
@@ -92,7 +94,7 @@ body {
 
 .player1,
 .player2 {
-  width: 50%;
+  width: 100%;
   position: relative;
 }
 
@@ -183,7 +185,13 @@ body {
   padding: 6px 40px;
   overflow-y: auto;
   color: white;
-  font-family: Mortal Kombat\ 3;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 12px;
+  line-height: 1.2;
+  span {
+    font-size: 16px;
+    font-family: Mortal Kombat\ 3;
+  }
   &:before {
     content: "";
     position: absolute;
@@ -198,7 +206,6 @@ body {
     position: relative;
   }
   .log{
-    font-family: Mortal Kombat\ 3;
     &__player1 {
       color: #cd0e03
     }

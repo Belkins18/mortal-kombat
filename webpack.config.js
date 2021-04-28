@@ -19,20 +19,27 @@ const addresses = function getLocalIP() {
     });
     return addresses;
 }
-const paths = {
+const paths = [{
     jsEntry: path.resolve(__dirname, './src', 'js', 'main.js'),
     styleEntry: path.resolve(__dirname, './src', 'styles', 'style.scss')
-}
+}, {
+    jsIndexEntry: path.resolve(__dirname, './src', 'js', 'index.js'),
+    styleIndexEntry: path.resolve(__dirname, './src', 'styles', 'index.scss')
+}]
 
 console.log({
     from: path.resolve(__dirname, 'src', 'assets', 'fonts'),
     to: path.resolve(__dirname, 'dist', 'fonts'),
 })
-const {jsEntry, styleEntry} = paths;
+const entryChanks = paths.reduce((acc, cur) => {
+    return Object.assign(acc, cur);
+}, {});
 console.log(addresses()[0])
+console.log(entryChanks)
 module.exports = {
     entry: {
-        app: [jsEntry, styleEntry],
+        index: [entryChanks.jsIndexEntry, entryChanks.styleIndexEntry],
+        app: [entryChanks.jsEntry, entryChanks.styleEntry],
     },
     output: {
         filename: "[name].[contenthash].js",
@@ -50,8 +57,14 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
+            chunks: ['index'],
+            template: path.resolve(__dirname, 'src', 'index.html'),
+            filename: path.resolve(__dirname, "dist", 'index.html')
+        }),
+        new HtmlWebpackPlugin({
             chunks: ['app'],
-            template: path.resolve(__dirname, 'src', 'index.html')
+            template: path.resolve(__dirname, 'src', 'arenas.html'),
+            filename: path.resolve(__dirname, "dist", 'arenas.html')
         }),
         new MiniCssExtractPlugin({
             filename: "./css/[name][hash].css",

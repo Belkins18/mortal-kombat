@@ -35,6 +35,24 @@ export default class Player {
     }
   }
 
+  attackPlayer() {
+    const stats = {};
+
+    for (const item of $formFight) {
+      if (item.checked && item.name === "hit") {
+        stats.hit = item.value;
+      }
+
+      if (item.checked && item.name === "defence") {
+        stats.defence = item.value;
+      }
+
+      item.checked = false;
+    }
+
+    return stats;
+  }
+
   attack(player) {
     this.hitValue = 0;
 
@@ -67,7 +85,7 @@ export default class Player {
         }
 
         this.hitValue = myPlayer.value;
-
+        debugger
         return myPlayer;
     }
   }

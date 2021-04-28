@@ -1,12 +1,9 @@
 import Player from "./Player";
-import {
-  createElement,
-  randomInteger,
-  getRandomPlayer,
-  generateLogs,
-} from "../utils";
+import FetchApi from "./FetchApi";
+import { createElement, randomInteger, generateLogs } from "../utils";
 import { $root, $arena, $chat, $formFight } from "../domEls";
 
+const _api = new FetchApi();
 const assets = "http://reactmarathon-api.herokuapp.com/assets/";
 const heroes = {
   scorpion: {
@@ -46,56 +43,84 @@ export default class Game {
     Object.assign(this, payload);
   }
 
-  init = () => {
-    this.playersForGame = [];
-    this.playersForGameDOM = [];
-
+  async init() {
     Game.createAudio({
       src: randomInteger(1, 3),
       allow: "autoplay 'src'",
       loop: "loop",
     });
+    this.playersForGame = [];
+    this.playersForGameDOM = [];
+    await this.renderPlayers();
 
-    this.generatePlayers(false, 0, heroes);
-    this.renderPlayers();
+    console.log("Me: ", this.myPlayer);
+    console.log("Enemy: ", this.enemyPlayer);
 
     generateLogs("start", this.myPlayer, this.enemyPlayer, $chat);
 
     $formFight.addEventListener("submit", (event) => this.onFormSubmit(event));
-  };
+  }
 
-  onFormSubmit(event) {
+  async setEnemyPlayer() {
+    const enemyPlayer = await _api.getEnemyPlayer();
+    console.log(enemyPlayer);
+
+    this.enemyPlayer = new Player({
+      ...enemyPlayer,
+      weapon: [],
+      number: 2,
+      isEnemy: true,
+    });
+
+    $arena.appendChild(this.enemyPlayer.createPlayer());
+  }
+
+  setMyPlayer(payload) {
+    this.myPlayer = new Player({
+      ...payload,
+      weapon: [],
+      number: 1,
+    });
+
+    $arena.appendChild(this.myPlayer.createPlayer());
+  }
+  async renderPlayers() {
+    this.setMyPlayer(heroes.scorpion);
+    await this.setEnemyPlayer();
+  }
+
+  async onFormSubmit(event) {
     event.preventDefault();
 
     const $btnSubmit = $formFight.querySelector("button[type='submit']");
-    const myPlayerRaundStep = this.myPlayer.attack("player");
-    const enemyPlayerRaundStep = this.enemyPlayer.attack("enemy");
+    const raundResults = await _api.getFightStats(this.myPlayer.attackPlayer());
+
+    const { player1, player2 } = raundResults;
     const actors = [
       {
-        hit: myPlayerRaundStep.hit,
-        defence: enemyPlayerRaundStep.defence,
-        value: myPlayerRaundStep.value,
+        hit: player1.hit,
+        defence: player2.defence,
+        value: player1.value,
         players: {
           hit: this.myPlayer,
           defence: this.enemyPlayer,
         },
       },
       {
-        hit: enemyPlayerRaundStep.hit,
-        defence: myPlayerRaundStep.defence,
-        value: enemyPlayerRaundStep.value,
+        hit: player2.hit,
+        defence: player1.defence,
+        value: player2.value,
         players: {
           hit: this.enemyPlayer,
           defence: this.myPlayer,
         },
       },
     ];
-
     console.log("myPlayer", {
-      ...myPlayerRaundStep,
+      ...player1,
     });
     console.log("enemyPlayer", {
-      ...enemyPlayerRaundStep,
+      ...player2,
     });
 
     actors.forEach((item) =>
@@ -104,43 +129,6 @@ export default class Game {
 
     this.showResults($btnSubmit, [this.myPlayer, this.enemyPlayer]);
   }
-
-  generatePlayers = (hardMode = false, myPlayer = 0, _heroes = heroes) => {
-    Array(2)
-      .fill(0)
-      .forEach((item, index) => {
-        const key = getRandomPlayer(Object.keys(_heroes));
-        const hero = heroes[key];
-        const randomHP = randomInteger(1, 100);
-
-        this.playersForGame.push(
-          new Player({
-            name: hero.name,
-            hp: hardMode ? randomHP : hero.hp,
-            img: hero.img,
-            weapon: hero.weapon,
-            number: index + 1,
-            isEnemy: myPlayer === index ? false : true,
-          })
-        );
-      });
-  };
-
-  renderPlayers = () => {
-    if (this.playersForGame.length !== 2) return;
-
-    this.playersForGame.forEach((player) => {
-      const $player = player.createPlayer();
-
-      if (player.isEnemy) {
-        this.enemyPlayer = player;
-      } else {
-        this.myPlayer = player;
-      }
-
-      $arena.appendChild($player);
-    });
-  };
 
   showResults = ($btnSubmit, players) => {
     players.forEach((player) => {
@@ -194,7 +182,7 @@ export default class Game {
 
     return $winTitle;
   }
-  
+
   static createReloadButton() {
     const $wrap = createElement("div", "reloadWrap");
     const $button = createElement("button", "button");

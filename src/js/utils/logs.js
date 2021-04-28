@@ -42,16 +42,10 @@ const logs = {
 };
 
 export const generateLogs = (
-  type, 
-  { 
-    name: namePlayer1, 
-    hitValue: hitValuePlayer1
-  }, 
-  {
-    name: namePlayer2,
-    hp: hpPlayer2
-  },
-  chat 
+  type,
+  { name: namePlayer1, hitValue: hitValuePlayer1 },
+  { name: namePlayer2, hp: hpPlayer2 },
+  chat
 ) => {
   const date = new Date();
   const time = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
@@ -66,35 +60,38 @@ export const generateLogs = (
   switch (type) {
     case "start":
       text = logs.start
-        .replace("[time]", time)
-        .replace("[player1]", namePlayer1)
-        .replace("[player2]", namePlayer2);
+        .replace("[time]", `<span>${time}</span>`)
+        .replace("[player1]", `<span>${namePlayer1}</span>`)
+        .replace("[player2]", `<span>${namePlayer2}</span>`);
       break;
     case "end":
       text = logs.end[randomInteger(0, logs.end.length - 1)]
-        .replace("[playerWins]", namePlayer1)
-        .replace("[playerLose]", namePlayer2);
+        .replace("[playerWins]", `<span>${namePlayer1}</span>`)
+        .replace("[playerLose]", `<span>${namePlayer2}</span>`);
       break;
     case "hit":
       text = `${logs.hit[randomInteger(0, logs.hit.length - 1)]
-        .replace("[playerKick]", namePlayer1)
-        .replace("[playerDefence]", namePlayer2)} 
-        <br/>${hitTemplate} | Dmg: ${hitValuePlayer1} | HP(${namePlayer2}): ${
+        .replace("[playerKick]", `<span>${namePlayer1}</span>`)
+        .replace("[playerDefence]", `<span>${namePlayer2}</span>`)} 
+        <br/><span>${hitTemplate} | Dmg: ${hitValuePlayer1} | HP(${namePlayer2}): ${
         hpPlayer2 <= 0 ? 0 : hpPlayer2
-      }/100`;
+      }/100</span>`;
       break;
     case "defence":
       text = `${logs.defence[randomInteger(0, logs.defence.length - 1)]
-        .replace("[playerKick]", namePlayer1)
-        .replace("[playerDefence]", namePlayer2)} <br/>${blockTemplate} | HP(${
-        namePlayer2
-      }): ${hpPlayer2 <= 0 ? 0 : hpPlayer2}/100`;
+        .replace("[playerKick]", `<span>${namePlayer1}</span>`)
+        .replace(
+          "[playerDefence]",
+          `<span>${namePlayer2}</span>`
+        )} <br/><span>${blockTemplate} | HP(${namePlayer2}): ${
+        hpPlayer2 <= 0 ? 0 : hpPlayer2
+      }/100</span>`;
       break;
     default:
       break;
   }
-  
-  const chatEl = `<p>${time}: ${text}</p>`;
+
+  const chatEl = `<p><span>${time}</span>: ${text}</p>`;
 
   chat.insertAdjacentHTML("afterbegin", chatEl);
 };
